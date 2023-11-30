@@ -30,7 +30,7 @@ jobs:
         # Don't run on forked repos
         if: github.repository_owner == 'project-chip'
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
 
         container:
             image: ghcr.io/project-chip/chip-build:26

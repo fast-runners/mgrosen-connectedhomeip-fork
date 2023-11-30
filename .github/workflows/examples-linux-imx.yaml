@@ -20,17 +20,20 @@ on:
     merge_group:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 env:
     CHIP_NO_LOG_TIMESTAMPS: true
-    
+
 jobs:
     imx:
         name: Linux i.MX Build
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
@@ -42,7 +45,7 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: linux
+                  platform: linux
 
             - name: Build lighting-app
               run: |

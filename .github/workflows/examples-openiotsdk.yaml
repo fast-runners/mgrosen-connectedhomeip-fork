@@ -21,7 +21,10 @@ on:
     workflow_dispatch:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 env:
@@ -34,7 +37,7 @@ jobs:
         env:
             TEST_NETWORK_NAME: OIStest
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
@@ -49,14 +52,14 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: openiotsdk linux
-                extra-submodule-parameters: " --recursive"
+                  platform: openiotsdk linux
+                  extra-submodule-parameters: " --recursive"
 
             - name: Set up environment for size reports
               uses: ./.github/actions/setup-size-reports
               if: ${{ !env.ACT }}
               with:
-                gh-context: ${{ toJson(github) }}
+                  gh-context: ${{ toJson(github) }}
 
             - name: Build and install Python controller
               run: |
@@ -169,7 +172,9 @@ jobs:
                   scripts/setup/openiotsdk/network_setup.sh -n $TEST_NETWORK_NAME down
 
             - name: "Test: ota-requestor-app example"
-              if: steps.build_ota_requestor_app.outcome == 'success' && steps.build_ota_provider_app.outcome == 'success'
+              if:
+                  steps.build_ota_requestor_app.outcome == 'success' &&
+                  steps.build_ota_provider_app.outcome == 'success'
               timeout-minutes: 30
               run: |
                   mkdir out/binaries

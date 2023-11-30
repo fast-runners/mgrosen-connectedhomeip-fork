@@ -20,7 +20,10 @@ on:
     merge_group:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 env:
@@ -34,7 +37,7 @@ jobs:
         env:
             BUILD_TYPE: gn_stm32
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
@@ -47,13 +50,13 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: stm32
+                  platform: stm32
 
             - name: Set up environment for size reports
               uses: ./.github/actions/setup-size-reports
               if: ${{ !env.ACT }}
               with:
-                gh-context: ${{ toJson(github) }}
+                  gh-context: ${{ toJson(github) }}
 
             - name: Build stm32 example apps
               timeout-minutes: 20
@@ -62,9 +65,9 @@ jobs:
                      "./scripts/build/build_examples.py \
                        --target stm32-STM32WB5MM-DK-light build \
                      "
-        
+
             - name: Uploading Size Reports
               uses: ./.github/actions/upload-size-reports
               if: ${{ !env.ACT }}
               with:
-                platform-name: stm32
+                  platform-name: stm32

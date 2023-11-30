@@ -20,7 +20,10 @@ on:
     merge_group:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 jobs:
@@ -28,7 +31,7 @@ jobs:
         name: Linux / configure build of all-clusters-app
 
         if: github.actor != 'restyled-io[bot]'
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
 
         container:
             image: ghcr.io/project-chip/chip-build-minimal:26
@@ -40,7 +43,7 @@ jobs:
             - name: Checkout submodules # but don't bootstrap!
               uses: ./.github/actions/checkout-submodules
               with:
-                platform: linux
+                  platform: linux
 
             - name: Configure and build All Clusters App
               run: |

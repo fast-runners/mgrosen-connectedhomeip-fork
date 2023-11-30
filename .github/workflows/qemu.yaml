@@ -20,21 +20,23 @@ on:
     merge_group:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 env:
     CHIP_NO_LOG_TIMESTAMPS: true
-    
-jobs:
 
+jobs:
     qemu-esp32:
         name: ESP32
 
         env:
             BUILD_TYPE: esp32-qemu
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
@@ -48,7 +50,7 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: esp32
+                  platform: esp32
 
             - name: Build ESP32 QEMU test images
               run: |
@@ -72,7 +74,7 @@ jobs:
     qemu-tizen:
         name: Tizen
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
@@ -86,12 +88,12 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: tizen
+                  platform: tizen
 
             - name: Build and run tests
               run: |
-                ./scripts/run_in_build_env.sh \
-                    "./scripts/build/build_examples.py \
-                        --target tizen-arm-tests-no-ble-no-thread \
-                        build
-                    "
+                  ./scripts/run_in_build_env.sh \
+                      "./scripts/build/build_examples.py \
+                          --target tizen-arm-tests-no-ble-no-thread \
+                          build
+                      "

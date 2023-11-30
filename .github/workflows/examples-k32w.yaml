@@ -20,12 +20,15 @@ on:
     merge_group:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 env:
     CHIP_NO_LOG_TIMESTAMPS: true
-    
+
 jobs:
     k32w:
         name: K32W
@@ -33,7 +36,7 @@ jobs:
         env:
             BUILD_TYPE: gn_k32w
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
@@ -46,13 +49,13 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: k32w
+                  platform: k32w
 
             - name: Set up environment for size reports
               uses: ./.github/actions/setup-size-reports
               if: ${{ !env.ACT }}
               with:
-                gh-context: ${{ toJson(github) }}
+                  gh-context: ${{ toJson(github) }}
 
             - name: Build examples
               run: |
@@ -99,4 +102,4 @@ jobs:
               uses: ./.github/actions/upload-size-reports
               if: ${{ !env.ACT }}
               with:
-                platform-name: K32W
+                  platform-name: K32W
