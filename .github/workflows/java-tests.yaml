@@ -21,27 +21,31 @@ on:
     workflow_dispatch:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
         'pull_request' && github.event.number) || (github.event_name ==
         'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 env:
     CHIP_NO_LOG_TIMESTAMPS: true
-    
+
 jobs:
     java_tests_linux:
         name: Linux
 
         env:
-            TSAN_OPTIONS: "halt_on_error=1 suppressions=scripts/tests/chiptest/tsan-linux-suppressions.txt"
+            TSAN_OPTIONS:
+                "halt_on_error=1
+                suppressions=scripts/tests/chiptest/tsan-linux-suppressions.txt"
 
         if: github.actor != 'restyled-io[bot]'
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
 
         container:
             image: ghcr.io/project-chip/chip-build-java:26
-            options: --privileged --sysctl "net.ipv6.conf.all.disable_ipv6=0
+            options:
+                --privileged --sysctl "net.ipv6.conf.all.disable_ipv6=0
                 net.ipv4.conf.all.forwarding=0 net.ipv6.conf.all.forwarding=0"
 
         steps:
@@ -50,9 +54,12 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: linux
-                bootstrap-log-name: bootstrap-logs-linux-${{ matrix.build_variant }}${{ matrix.chip_tool }}
-            - name: Try to ensure the directories for core dumping exist and we
+                  platform: linux
+                  bootstrap-log-name:
+                      bootstrap-logs-linux-${{ matrix.build_variant }}${{
+                      matrix.chip_tool }}
+            - name:
+                  Try to ensure the directories for core dumping exist and we
                   can write them.
               run: |
                   mkdir /tmp/cores || true
@@ -66,21 +73,23 @@ jobs:
                      gen \
                   '
             - name: Build unit tests
-              run: scripts/run_in_build_env.sh 'ninja -C out/linux-x64-tests src:java_controller_tests'
+              run:
+                  scripts/run_in_build_env.sh 'ninja -C out/linux-x64-tests
+                  src:java_controller_tests'
 
             - name: Run unit tests
               # TODO: this direct path loading is not maintainable. Our build system should define and
               #       support test classes.
               run: |
-                 $JAVA_PATH/bin/java \
-                   -cp 'third_party/java_deps/artifacts/*:out/linux-x64-tests/lib/src/controller/java/*' \
-                   org.junit.runner.JUnitCore       \
-                   matter.tlv.TlvWriterTest           \
-                   matter.tlv.TlvReadWriteTest        \
-                   matter.tlv.TlvReaderTest           \
-                   matter.jsontlv.JsonToTlvToJsonTest \
-                   matter.onboardingpayload.ManualCodeTest \
-                   matter.onboardingpayload.QRCodeTest
+                  $JAVA_PATH/bin/java \
+                    -cp 'third_party/java_deps/artifacts/*:out/linux-x64-tests/lib/src/controller/java/*' \
+                    org.junit.runner.JUnitCore       \
+                    matter.tlv.TlvWriterTest           \
+                    matter.tlv.TlvReadWriteTest        \
+                    matter.tlv.TlvReaderTest           \
+                    matter.jsontlv.JsonToTlvToJsonTest \
+                    matter.onboardingpayload.ManualCodeTest \
+                    matter.onboardingpayload.QRCodeTest
             - name: Build Java Matter Controller and all clusters app
               run: |
                   scripts/run_in_build_env.sh './scripts/build_python.sh --install_virtual_env out/venv'
@@ -98,7 +107,7 @@ jobs:
                    "./scripts/build/build_examples.py \
                       --target linux-x64-kotlin-matter-controller \
                       build \
-                   "                   
+                   "
             - name: Run Discover Commissionables Test
               run: |
                   scripts/run_in_python_env.sh out/venv \
@@ -220,7 +229,7 @@ jobs:
                      --tool-cluster "pairing" \
                      --tool-args "onnetwork-long --nodeid 1 --setup-pin-code 20202021 --discriminator 3840 -t 1000" \
                      --factoryreset \
-                  '                  
+                  '
             - name: Run Kotlin IM Invoke Test
               run: |
                   scripts/run_in_python_env.sh out/venv \
@@ -264,7 +273,7 @@ jobs:
                      --tool-cluster "im" \
                      --tool-args "onnetwork-long-im-subscribe --nodeid 1 --setup-pin-code 20202021 --discriminator 3840 -t 3000" \
                      --factoryreset \
-                  '                                                  
+                  '
             - name: Uploading core files
               uses: actions/upload-artifact@v3
               if: ${{ failure() && !env.ACT }}

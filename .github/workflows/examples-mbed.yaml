@@ -21,7 +21,10 @@ on:
     workflow_dispatch:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 env:
@@ -36,7 +39,7 @@ jobs:
             APP_PROFILE: release
             APP_TARGET: cy8cproto_062_4343w
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
@@ -50,13 +53,13 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: mbed
+                  platform: mbed
 
             - name: Set up environment for size reports
               uses: ./.github/actions/setup-size-reports
               if: ${{ !env.ACT }}
               with:
-                gh-context: ${{ toJson(github) }}
+                  gh-context: ${{ toJson(github) }}
 
             - name: Build lock-app example
               run: |
@@ -158,10 +161,12 @@ jobs:
             - name: Build unit tests
               # Temporarily disable build due to running out of flash space
               if: false
-              run: scripts/tests/mbed/mbed_unit_tests.sh -b=$APP_TARGET -p=$APP_PROFILE
+              run:
+                  scripts/tests/mbed/mbed_unit_tests.sh -b=$APP_TARGET
+                  -p=$APP_PROFILE
 
             - name: Uploading Size Reports
               uses: ./.github/actions/upload-size-reports
               if: ${{ !env.ACT }}
               with:
-                platform-name: Mbed
+                  platform-name: Mbed

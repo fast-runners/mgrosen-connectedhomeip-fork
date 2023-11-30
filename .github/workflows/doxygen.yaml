@@ -72,14 +72,17 @@ on:
     workflow_dispatch:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 jobs:
     doxygen:
         name: Build Doxygen
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         container:
             image: ghcr.io/project-chip/chip-build-doxygen:26
 
@@ -97,7 +100,9 @@ jobs:
               run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF##*/})"
               id: extract_branch
             - name: Deploy if master
-              if: steps.extract_branch.outputs.branch == 'master' && github.repository == 'project-chip/connectedhomeip'
+              if:
+                  steps.extract_branch.outputs.branch == 'master' &&
+                  github.repository == 'project-chip/connectedhomeip'
               uses: peaceiris/actions-gh-pages@v3
               with:
                   deploy_key: ${{ secrets.DOXYGEN_DEPLOY_KEY }}

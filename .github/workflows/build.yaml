@@ -20,30 +20,34 @@ on:
     merge_group:
     workflow_dispatch:
     workflow_call:
-      inputs:
-        run-codeql:
-          required: false
-          type: boolean
-    
+        inputs:
+            run-codeql:
+                required: false
+                type: boolean
+
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 env:
     CHIP_NO_LOG_TIMESTAMPS: true
-    
+
 jobs:
     build_linux_gcc_debug:
         name: Build on Linux (gcc_debug)
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
             image: ghcr.io/project-chip/chip-build:26
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
-            options: --privileged --sysctl "net.ipv6.conf.all.disable_ipv6=0
+            options:
+                --privileged --sysctl "net.ipv6.conf.all.disable_ipv6=0
                 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
 
         steps:
@@ -53,11 +57,16 @@ jobs:
               run: echo "$GITHUB_CONTEXT"
             - name: Dump Concurrency context
               env:
-                  CONCURRENCY_CONTEXT: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+                  CONCURRENCY_CONTEXT:
+                      ${{ github.ref }}-${{ github.workflow }}-${{
+                      (github.event_name == 'pull_request' &&
+                      github.event.number) || (github.event_name ==
+                      'workflow_dispatch' && github.run_number) || github.sha }}
               run: echo "$CONCURRENCY_CONTEXT"
             - name: Checkout
               uses: actions/checkout@v4
-            - name: Try to ensure the directories for core dumping exist and we
+            - name:
+                  Try to ensure the directories for core dumping exist and we
                   can write them.
               run: |
                   mkdir /tmp/cores || true
@@ -65,14 +74,17 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: linux
+                  platform: linux
             - name: Initialize CodeQL
               if: ${{ inputs.run-codeql  }}
               uses: github/codeql-action/init@v2
               with:
                   languages: "cpp"
             - name: Setup Build
-              run: scripts/build/gn_gen.sh --args="chip_config_memory_debug_checks=true chip_config_memory_debug_dmalloc=false"
+              run:
+                  scripts/build/gn_gen.sh
+                  --args="chip_config_memory_debug_checks=true
+                  chip_config_memory_debug_dmalloc=false"
             - name: Run Build
               run: scripts/run_in_build_env.sh "ninja -C ./out"
             - name: Run Tests
@@ -90,11 +102,15 @@ jobs:
             - name: Run Build Without Detail Logging
               run: scripts/run_in_build_env.sh "ninja -C ./out"
             - name: Set up Build Without Progress Logging
-              run: scripts/build/gn_gen.sh --args="chip_detail_logging=false chip_progress_logging=false"
+              run:
+                  scripts/build/gn_gen.sh --args="chip_detail_logging=false
+                  chip_progress_logging=false"
             - name: Run Build Without Progress Logging
               run: scripts/run_in_build_env.sh "ninja -C ./out"
             - name: Set up Build Without Error Logging
-              run: scripts/build/gn_gen.sh --args="chip_detail_logging=false chip_progress_logging=false chip_error_logging=false"
+              run:
+                  scripts/build/gn_gen.sh --args="chip_detail_logging=false
+                  chip_progress_logging=false chip_error_logging=false"
             - name: Run Build Without Error Logging
               run: scripts/run_in_build_env.sh "ninja -C ./out"
             - name: Set up Build Without Logging
@@ -113,7 +129,7 @@ jobs:
               if: ${{ inputs.run-codeql  }}
               uses: ./.github/actions/perform-codeql-analysis
               with:
-                language: cpp
+                  language: cpp
             # OBJDIR on linux is > 10K files and takes more than 50 minutes to upload, usually
             # having the job timeout.
             #
@@ -131,14 +147,15 @@ jobs:
     build_linux:
         name: Build on Linux (fake, gcc_release, clang, simulated)
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
             image: ghcr.io/project-chip/chip-build:26
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
-            options: --privileged --sysctl "net.ipv6.conf.all.disable_ipv6=0
+            options:
+                --privileged --sysctl "net.ipv6.conf.all.disable_ipv6=0
                 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
 
         steps:
@@ -148,11 +165,16 @@ jobs:
               run: echo "$GITHUB_CONTEXT"
             - name: Dump Concurrency context
               env:
-                  CONCURRENCY_CONTEXT: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+                  CONCURRENCY_CONTEXT:
+                      ${{ github.ref }}-${{ github.workflow }}-${{
+                      (github.event_name == 'pull_request' &&
+                      github.event.number) || (github.event_name ==
+                      'workflow_dispatch' && github.run_number) || github.sha }}
               run: echo "$CONCURRENCY_CONTEXT"
             - name: Checkout
               uses: actions/checkout@v4
-            - name: Try to ensure the directories for core dumping exist and we
+            - name:
+                  Try to ensure the directories for core dumping exist and we
                   can write them.
               run: |
                   mkdir /tmp/cores || true
@@ -160,7 +182,7 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: linux
+                  platform: linux
             - name: Initialize CodeQL
               if: ${{ inputs.run-codeql  }}
               uses: github/codeql-action/init@v2
@@ -217,7 +239,9 @@ jobs:
                        --target linux-x64-rpc-console \
                        build \
                     "
-            - name: Create a pre-generate directory and ensure compile-time codegen would fail
+            - name:
+                  Create a pre-generate directory and ensure compile-time
+                  codegen would fail
               run: |
                   ./scripts/run_in_build_env.sh "./scripts/codepregen.py ./zzz_pregenerated"
                   mv scripts/codegen.py scripts/codegen.py.renamed
@@ -240,7 +264,9 @@ jobs:
                      find out -name "CHIPClusters.h"
                      exit 1
                   fi
-            - name: Undo code pre-generation changes (make compile time codegen work again)
+            - name:
+                  Undo code pre-generation changes (make compile time codegen
+                  work again)
               run: |
                   rm -rf ./zzz_pregenerated
                   mv scripts/codegen.py.renamed scripts/codegen.py
@@ -252,8 +278,8 @@ jobs:
               if: ${{ inputs.run-codeql  }}
               uses: ./.github/actions/perform-codeql-analysis
               with:
-                language: cpp
-        
+                  language: cpp
+
             - name: Uploading core files
               uses: actions/upload-artifact@v3
               if: ${{ failure() && !env.ACT }}
@@ -279,14 +305,15 @@ jobs:
     build_linux_python_lib:
         name: Build on Linux (python_lib)
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
             image: ghcr.io/project-chip/chip-build:26
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
-            options: --sysctl "net.ipv6.conf.all.disable_ipv6=0
+            options:
+                --sysctl "net.ipv6.conf.all.disable_ipv6=0
                 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
 
         steps:
@@ -296,14 +323,18 @@ jobs:
               run: echo "$GITHUB_CONTEXT"
             - name: Dump Concurrency context
               env:
-                  CONCURRENCY_CONTEXT: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+                  CONCURRENCY_CONTEXT:
+                      ${{ github.ref }}-${{ github.workflow }}-${{
+                      (github.event_name == 'pull_request' &&
+                      github.event.number) || (github.event_name ==
+                      'workflow_dispatch' && github.run_number) || github.sha }}
               run: echo "$CONCURRENCY_CONTEXT"
             - name: Checkout
               uses: actions/checkout@v4
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: linux
+                  platform: linux
 
             - name: Setup Build, Run Build and Run Tests
               run: |
@@ -339,14 +370,15 @@ jobs:
     build_linux_python_lighting_device:
         name: Build on Linux (python lighting-app)
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
             image: ghcr.io/project-chip/chip-build:26
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
-            options: --sysctl "net.ipv6.conf.all.disable_ipv6=0
+            options:
+                --sysctl "net.ipv6.conf.all.disable_ipv6=0
                 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
 
         steps:
@@ -356,14 +388,18 @@ jobs:
               run: echo "$GITHUB_CONTEXT"
             - name: Dump Concurrency context
               env:
-                  CONCURRENCY_CONTEXT: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+                  CONCURRENCY_CONTEXT:
+                      ${{ github.ref }}-${{ github.workflow }}-${{
+                      (github.event_name == 'pull_request' &&
+                      github.event.number) || (github.event_name ==
+                      'workflow_dispatch' && github.run_number) || github.sha }}
               run: echo "$CONCURRENCY_CONTEXT"
             - name: Checkout
               uses: actions/checkout@v4
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: linux
+                  platform: linux
 
             - name: Setup Build
               run: |
@@ -380,8 +416,10 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: darwin
-            - name: Try to ensure the directory for diagnostic log collection exists
+                  platform: darwin
+            - name:
+                  Try to ensure the directory for diagnostic log collection
+                  exists
               run: |
                   mkdir -p ~/Library/Logs/DiagnosticReports || true
             - name: Initialize CodeQL
@@ -439,22 +477,23 @@ jobs:
               if: ${{ inputs.run-codeql  }}
               uses: ./.github/actions/perform-codeql-analysis
               with:
-                language: cpp
-        
+                  language: cpp
+
             # TODO Log Upload https://github.com/project-chip/connectedhomeip/issues/2227
             # TODO https://github.com/project-chip/connectedhomeip/issues/1512
 
     build_linux_gcc_coverage:
         name: Build on Linux (coverage)
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
             image: ghcr.io/project-chip/chip-build:26
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
-            options: --privileged --sysctl "net.ipv6.conf.all.disable_ipv6=0
+            options:
+                --privileged --sysctl "net.ipv6.conf.all.disable_ipv6=0
                 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
 
         steps:
@@ -463,7 +502,7 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: linux
+                  platform: linux
 
             - name: Run Build Coverage
               run: ./scripts/build_coverage.sh

@@ -20,7 +20,10 @@ on:
     merge_group:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 env:
@@ -33,7 +36,7 @@ jobs:
         env:
             BUILD_TYPE: nrfconnect
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         if: github.actor != 'restyled-io[bot]'
 
         container:
@@ -47,7 +50,7 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: nrfconnect
+                  platform: nrfconnect
             - name: Detect changed paths
               uses: dorny/paths-filter@v2
               id: changed_paths
@@ -65,40 +68,54 @@ jobs:
               uses: ./.github/actions/setup-size-reports
               if: ${{ !env.ACT }}
               with:
-                gh-context: ${{ toJson(github) }}
+                  gh-context: ${{ toJson(github) }}
 
             - name: Check nRF Connect SDK revision.
-              run: scripts/run_in_build_env.sh "python3 scripts/setup/nrfconnect/update_ncs.py --check"
+              run:
+                  scripts/run_in_build_env.sh "python3
+                  scripts/setup/nrfconnect/update_ncs.py --check"
             - name: Run unit tests of factory data generation script
               run: |
                   scripts/run_in_build_env.sh 'pip3 install -r scripts/setup/requirements.nrfconnect.txt'
                   scripts/run_in_build_env.sh "./scripts/tools/nrfconnect/tests/test_generate_factory_data.py"
             - name: Build example nRF Connect SDK Lock App on nRF52840 DK
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh lock-app nrf52840dk_nrf52840
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
                     nrfconnect nrf52840dk_nrf52840 lock-app \
                     examples/lock-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
-            - name: Build example nRF Connect SDK Lighting App on nRF52840 Dongle
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+            - name:
+                  Build example nRF Connect SDK Lighting App on nRF52840 Dongle
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh lighting-app nrf52840dongle_nrf52840 -DCONF_FILE=prj_no_dfu.conf -DCONFIG_CHIP_ROTATING_DEVICE_ID=y
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
                     nrfconnect nrf52840dongle_nrf52840 lighting-app \
                     examples/lighting-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
-            - name: Build example nRF Connect SDK Lighting App on nRF52840 DK with RPC
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+            - name:
+                  Build example nRF Connect SDK Lighting App on nRF52840 DK with
+                  RPC
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh lighting-app nrf52840dk_nrf52840 -DOVERLAY_CONFIG=rpc.overlay
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
                     nrfconnect nrf52840dk_nrf52840+rpc lighting-app \
                     examples/lighting-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
-            - name: Build example nRF Connect SDK Light Switch App on nRF52840 DK
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+            - name:
+                  Build example nRF Connect SDK Light Switch App on nRF52840 DK
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh light-switch-app nrf52840dk_nrf52840
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
@@ -106,7 +123,9 @@ jobs:
                     examples/light-switch-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
             - name: Build example nRF Connect SDK Shell on nRF52840 DK
-              if: github.event_name == 'push' || steps.changed_paths.outputs.shell == 'true'
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.shell == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh shell nrf52840dk_nrf52840
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
@@ -114,29 +133,38 @@ jobs:
                     examples/shell/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
             - name: Build example nRF Connect SDK Pump App on nRF52840 DK
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh pump-app nrf52840dk_nrf52840
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
                     nrfconnect nrf52840dk_nrf52840 pump-app \
                     examples/pump-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
-            - name: Build example nRF Connect SDK Pump Controller App on nRF52840 DK
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+            - name:
+                  Build example nRF Connect SDK Pump Controller App on nRF52840
+                  DK
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh pump-controller-app nrf52840dk_nrf52840
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
                     nrfconnect nrf52840dk_nrf52840 pump-controller-app \
                     examples/pump-controller-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
-            - name: Build example nRF Connect SDK All Clusters App on nRF52840 DK
+            - name:
+                  Build example nRF Connect SDK All Clusters App on nRF52840 DK
               run: |
                   scripts/examples/nrfconnect_example.sh all-clusters-app nrf52840dk_nrf52840
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
                     nrfconnect nrf52840dk_nrf52840 all-clusters-app \
                     examples/all-clusters-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
-            - name: Build example nRF Connect SDK All Clusters Minimal App on nRF52840 DK
+            - name:
+                  Build example nRF Connect SDK All Clusters Minimal App on
+                  nRF52840 DK
               run: |
                   scripts/examples/nrfconnect_example.sh all-clusters-minimal-app nrf52840dk_nrf52840 -DCONF_FILE=prj_dfu.conf
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
@@ -144,7 +172,9 @@ jobs:
                     examples/all-clusters-minimal-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
             - name: Build example nRF Connect SDK Lock App on nRF5340 DK
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh lock-app nrf5340dk_nrf5340_cpuapp
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
@@ -152,7 +182,9 @@ jobs:
                     examples/lock-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
             - name: Build example nRF Connect SDK Lighting App on nRF5340 DK
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh lighting-app nrf5340dk_nrf5340_cpuapp
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
@@ -160,15 +192,20 @@ jobs:
                     examples/lighting-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
             - name: Build example nRF Connect SDK Lock App on nRF7002 PDK
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh lock-app nrf7002dk_nrf5340_cpuapp
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
                     nrfconnect nrf7002dk_nrf5340_cpuapp lock-app \
                     examples/lock-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
-            - name: Build example nRF Connect SDK Light Switch App on nRF7002 PDK
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+            - name:
+                  Build example nRF Connect SDK Light Switch App on nRF7002 PDK
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh light-switch-app nrf7002dk_nrf5340_cpuapp
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
@@ -176,14 +213,17 @@ jobs:
                     examples/light-switch-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
             - name: Build example nRF Connect SDK Lighting App on nRF7002 PDK
-              if: github.event_name == 'push' || steps.changed_paths.outputs.nrfconnect == 'true'
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/examples/nrfconnect_example.sh lighting-app nrf7002dk_nrf5340_cpuapp
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
                     nrfconnect nrf7002dk_nrf5340_cpuapp lighting-app \
                     examples/light-switch-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
-            - name: Build example nRF Connect SDK All Clusters App on nRF7002 PDK
+            - name:
+                  Build example nRF Connect SDK All Clusters App on nRF7002 PDK
               run: |
                   scripts/examples/nrfconnect_example.sh all-clusters-app nrf7002dk_nrf5340_cpuapp -DCONF_FILE=prj_release.conf
                   .environment/pigweed-venv/bin/python3 scripts/tools/memory/gh_sizes.py \
@@ -191,7 +231,10 @@ jobs:
                     examples/all-clusters-app/nrfconnect/build/zephyr/zephyr.elf \
                     /tmp/bloat_reports/
             - name: Run unit tests for Zephyr native_posix_64 platform
-              if: github.event_name == 'push' || steps.changed_paths.outputs.tests == 'true' || steps.changed_paths.outputs.nrfconnect == 'true'
+              if:
+                  github.event_name == 'push' ||
+                  steps.changed_paths.outputs.tests == 'true' ||
+                  steps.changed_paths.outputs.nrfconnect == 'true'
               run: |
                   scripts/run_in_build_env.sh "./scripts/build/build_examples.py --target nrf-native-posix-64-tests build"
             - name: Uploading Failed Test Logs
@@ -206,4 +249,4 @@ jobs:
               uses: ./.github/actions/upload-size-reports
               if: ${{ !env.ACT }}
               with:
-                platform-name: nRFConnect
+                  platform-name: nRFConnect

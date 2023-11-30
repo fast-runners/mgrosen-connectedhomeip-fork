@@ -7,7 +7,9 @@ on:
                 default: "false"
                 required: false
                 type: boolean
-                description: Enable, if you want to import all TODOs. Runs on checked out branch! Only use if you're sure what you are doing.
+                description:
+                    Enable, if you want to import all TODOs. Runs on checked out
+                    branch! Only use if you're sure what you are doing.
 #   push: Will move this to a cadence
 #     branches:
 #       - master
@@ -20,7 +22,7 @@ permissions:
 jobs:
     todos:
         name: Scan for To-Dos
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
 
         steps:
             - name: Checkout

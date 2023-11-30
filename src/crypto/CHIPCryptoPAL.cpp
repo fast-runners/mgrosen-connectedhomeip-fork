@@ -51,7 +51,7 @@ constexpr size_t kMinSequenceOverhead = 1 /* tag */ + 1 /* length */ + 1 /* actu
  * @brief Utility to convert DER-encoded INTEGER into a raw integer buffer in big-endian order
  *        with leading zeroes if the output buffer is larger than needed.
  * @param[in] reader Reader instance from which the input will be read
- * @param[out] raw_integer_out Buffer to receive the DER-encoded integer
+ * @param[out] raw_integer_out Buffer to receive the DER-encoded integer, test 2
  * @return CHIP_ERROR_INVALID_ARGUMENT or CHIP_ERROR_BUFFER_TOO_SMALL on error, CHIP_NO_ERROR otherwise
  */
 CHIP_ERROR ReadDerUnsignedIntegerIntoRaw(Reader & reader, MutableByteSpan raw_integer_out)

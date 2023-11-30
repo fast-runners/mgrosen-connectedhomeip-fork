@@ -14,36 +14,38 @@
 
 name: Backwards compatibility check
 on:
-  pull_request:
-    paths:
-      - "src/controller/data_model/controller-clusters.matter"
+    pull_request:
+        paths:
+            - "src/controller/data_model/controller-clusters.matter"
 
 jobs:
-  check_clusters_matter:
-    name: Check controller-clusters.matter backwards compatibility
-    runs-on: ubuntu-latest
-    if: github.event.pull_request && !(contains(github.event.pull_request.labels.*.name, 'skip-protocol-compatibility'))
+    check_clusters_matter:
+        name: Check controller-clusters.matter backwards compatibility
+        runs-on: ebpf-linux
+        if:
+            github.event.pull_request &&
+            !(contains(github.event.pull_request.labels.*.name,
+            'skip-protocol-compatibility'))
 
-    steps:
-       - name: Checkout
-         uses: actions/checkout@v4
-       - name: Setup python
-         uses: actions/setup-python@v4
-         with:
-           python-version: 3.11
-       - name: Install dependencies
-         run: |
-           python -m pip install --upgrade pip
-           pip install click coloredlogs lark
-       - name: Create old/new copies
-         run: |
-           mkdir -p out
-           cp src/controller/data_model/controller-clusters.matter out/new_version.matter
-           wget '${{github.event.pull_request.diff_url}}' --output-document out/patch.diff
-           patch -p1 --reverse <out/patch.diff
-           cp src/controller/data_model/controller-clusters.matter out/old_version.matter
-           patch -p1 <out/patch.diff
-       - name: Check backwards compatibility
-         run: |
-           scripts/backwards_compatibility_checker.py out/old_version.matter out/new_version.matter
-
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Setup python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: 3.11
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install click coloredlogs lark
+            - name: Create old/new copies
+              run: |
+                  mkdir -p out
+                  cp src/controller/data_model/controller-clusters.matter out/new_version.matter
+                  wget '${{github.event.pull_request.diff_url}}' --output-document out/patch.diff
+                  patch -p1 --reverse <out/patch.diff
+                  cp src/controller/data_model/controller-clusters.matter out/old_version.matter
+                  patch -p1 <out/patch.diff
+            - name: Check backwards compatibility
+              run: |
+                  scripts/backwards_compatibility_checker.py out/old_version.matter out/new_version.matter

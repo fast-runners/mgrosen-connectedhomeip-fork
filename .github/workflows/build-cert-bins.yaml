@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
 jobs:
     build-cert-bin:
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
         steps:
             - uses: actions/checkout@master
             - name: Set up Docker Buildx

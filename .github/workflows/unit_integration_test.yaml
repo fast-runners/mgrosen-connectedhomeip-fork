@@ -20,7 +20,10 @@ on:
     merge_group:
 
 concurrency:
-    group: ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name == 'pull_request' && github.event.number) || (github.event_name == 'workflow_dispatch' && github.run_number) || github.sha }}
+    group:
+        ${{ github.ref }}-${{ github.workflow }}-${{ (github.event_name ==
+        'pull_request' && github.event.number) || (github.event_name ==
+        'workflow_dispatch' && github.run_number) || github.sha }}
     cancel-in-progress: true
 
 jobs:
@@ -34,13 +37,15 @@ jobs:
         env:
             BUILD_TYPE: ${{ matrix.type }}
 
-        runs-on: ubuntu-latest
+        runs-on: ebpf-linux
 
         container:
             image: ghcr.io/project-chip/chip-build:26
             volumes:
                 - "/tmp/log_output:/tmp/test_logs"
-            options: --privileged --sysctl "net.ipv6.conf.all.disable_ipv6=0 net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
+            options:
+                --privileged --sysctl "net.ipv6.conf.all.disable_ipv6=0
+                net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
 
         steps:
             - name: Checkout
@@ -48,7 +53,7 @@ jobs:
             - name: Checkout submodules & Bootstrap
               uses: ./.github/actions/checkout-submodules-and-bootstrap
               with:
-                platform: linux
+                  platform: linux
             - name: Artifact suffix
               id: outsuffix
               uses: haya14busa/action-cond@v1
